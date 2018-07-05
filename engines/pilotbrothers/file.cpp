@@ -20,29 +20,27 @@
  *
  */
 
-#include "engines/util.h"
-
 #include "pilotbrothers/pilotbrothers.h"
 
 namespace PilotBrothers {
 
-PilotBrothersEngine::PilotBrothersEngine(OSystem *syst, const ADGameDescription *desc)
-	: Engine(syst), _desc(*desc) {
-	syncSoundSettings();
-}
-
-Common::Error PilotBrothersEngine::run() {
-	if (init().getCode() != Common::kNoError)
+Common::Error PilotBrothersEngine::initFile() {
+	if (!_file.open(_desc.filesDescriptions[0].fileName))
 		return Common::kNoGameDataFoundError;
 
-	return Common::kNoError;
-}
-
-Common::Error PilotBrothersEngine::init() {
-	if (initFile().getCode() != Common::kNoError)
+	_file.seek(-12, SEEK_END);
+	_file.readUint32LE(); // size of unk struct (11)
+	if (_file.readUint32BE() != 4 || _file.readUint32BE() != MKTAG('=', 'V', 'S', '=')) // Vadim Sytnikov
 		return Common::kNoGameDataFoundError;
+
+	_file.seek(-23, SEEK_END);
+
+	_countOfByteCodeFiles = _file.readUint32LE();
+	_offsetToByteCodeFiles = _file.readUint32LE();
+	_offsetToTableOfOffsetsOfByteCodeFiles = 23 + 5 * _countOfByteCodeFiles + 5;
 
 	return Common::kNoError;
 }
 
 } // End of namespace PilotBrothers
+

@@ -2,6 +2,7 @@ MODULE := engines/pilotbrothers
 
 MODULE_OBJS = \
     detection.o \
+    file.o \
 	pilotbrothers.o \
 
 # This module can be built as a plugin

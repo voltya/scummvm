@@ -40,8 +40,14 @@ public:
 
 private:
 	Common::Error init();
+	Common::Error initFile();
 
-
+private:
+	const ADGameDescription _desc;
+	Common::File _file;
+	uint32 _offsetToByteCodeFiles; // absolute
+	uint32 _offsetToTableOfOffsetsOfByteCodeFiles; // from end
+	uint32 _countOfByteCodeFiles;
 };
 
 } // End of namespace PilotBrothers
