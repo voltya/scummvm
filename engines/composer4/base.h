@@ -127,6 +127,7 @@ enum FunctionOpcode : uint16 {
 	kXTimeToNextTick = 0x5a,
 	// Vm events end
 
+	kFirstFunctionOpcode = 0x88b8,
 	kStopAnimation = 0x88ba,
 	kStartTimer = 0x88bc,
 	kStopTimer = 0x88bd,

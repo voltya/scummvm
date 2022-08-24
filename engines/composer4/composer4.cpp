@@ -140,6 +140,10 @@ Common::Error Composer4Engine::syncGame(Common::Serializer &s) {
 FunctionResult Composer4Engine::callFunction(uint16 opcode, Common::Array<Variable> &arguments) {
 	FunctionResult result;
 
+	if (opcode < kFirstFunctionOpcode) {
+		return runEvent(opcode, arguments);
+	}
+
 	switch (opcode) {
 	case kActivateButton:
 	case kDeactivateButton:
@@ -175,7 +179,55 @@ FunctionResult Composer4Engine::callFunction(uint16 opcode, Common::Array<Variab
 }
 
 FunctionResult Composer4Engine::runEvent(uint16 id, Common::Array<Variable> &arguments) {
-	return FunctionResult(0);
+	constexpr uint kPointer = 0x40;
+	// constexpr uint kID = 0x80;
+
+	Common::ScopedPtr<Common::SeekableReadStream> stream{loadResource(id, ResourceType::kEvent)};
+
+	if (!stream || !stream->skip(16))
+		return FunctionResult{};
+
+	const uint args_count = stream->readUint32LE();
+	assert(arguments.size() == args_count);
+
+	// function signature is stored here like (int *, int, string)
+	for (auto &argument : arguments) {
+		const uint argument_type = stream->readUint32LE();
+		if (argument_type & kPointer) {
+			// argument.u32 = static_cast<byte *>(argument.pointer) - static_cast<byte *>(_scriptEngine->getRawMemory(0));
+		}
+	}
+
+	uint script_id = 0;
+	const uint handlers_count = stream->readUint32LE();
+	if (!handlers_count)
+		return FunctionResult();
+
+	if (args_count > 0) {
+		// similar to switch
+		uint curr_script = 0;
+		uint curr_handler = 0;
+
+		for (uint i = 0; i < handlers_count; ++i) {
+			curr_script = stream->readUint32LE();
+			curr_handler = stream->readUint32LE();
+
+			if (curr_handler == arguments[0].u32) {
+				script_id = curr_script;
+				break;
+			}
+		}
+
+		if (!script_id && curr_handler == 0) // default handler
+			script_id = curr_script;
+	} else {
+		script_id = stream->readUint32LE();
+	}
+
+	if (!script_id)
+		return FunctionResult();
+
+	return runScript(script_id, arguments);
 }
 
 FunctionResult Composer4Engine::runScript(uint16 id, Common::Array<Variable> &arguments) {
