@@ -27,6 +27,7 @@
 #include "engines/util.h"
 #include "graphics/palette.h"
 
+#include "composer4/button.h"
 #include "composer4/composer4.h"
 #include "composer4/console.h"
 #include "composer4/library.h"
@@ -63,6 +64,8 @@ Common::Error Composer4Engine::run() {
 
 	// Set the engine's debugger console
 	setDebugger(new Console());
+
+	_buttonsMan.reset(new ButtonsContainer());
 
 	// If a savegame was selected from the launcher, load it
 	int saveSlot = ConfMan.getInt("save_slot");
@@ -111,6 +114,18 @@ Common::Error Composer4Engine::syncGame(Common::Serializer &s) {
 
 FunctionResult Composer4Engine::callFunction(uint16 opcode, Common::Array<Variable> &arguments) {
 	FunctionResult result;
+
+	switch (opcode) {
+	case kActivateButton:
+	case kDeactivateButton:
+		_buttonsMan->activateButton(arguments[0].u16, opcode == kActivateButton);
+		// update cursor
+		return FunctionResult(1);
+	default:
+		debug("function %d is not supported yet", opcode);
+		break;
+	}
+
 	return result;
 }
 
@@ -126,6 +141,11 @@ Common::SeekableReadStream *Composer4Engine::loadResource(uint16 id, ResourceTyp
 void Composer4Engine::onResourceLoad(uint16 id, ResourceType type) {
 	switch (type) {
 	case ResourceType::kButton:
+		if (const Common::ScopedPtr<Common::SeekableReadStream> resource{loadResource(id, type)}) {
+			_buttonsMan->addButton(id, *resource);
+		}
+		// update cursor
+		break;
 	case ResourceType::kVariable:
 	default:
 		break;
@@ -135,6 +155,8 @@ void Composer4Engine::onResourceLoad(uint16 id, ResourceType type) {
 void Composer4Engine::onResourceFree(uint16 id, ResourceType type) {
 	switch (type) {
 	case ResourceType::kButton:
+		_buttonsMan->removeButton(id);
+		break;
 	case ResourceType::kVariable:
 	default:
 		break;

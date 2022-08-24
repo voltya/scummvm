@@ -42,6 +42,7 @@ namespace Composer4 {
 struct Composer4GameDescription;
 
 class Library;
+class ButtonsContainer;
 
 // Based on 4.0.0.36
 class Composer4Engine : public Engine {
@@ -115,6 +116,7 @@ public:
 
 private:
 	Common::Array<Library *> _libraries;
+	Common::ScopedPtr<ButtonsContainer> _buttonsMan;
 };
 
 extern Composer4Engine *g_engine;
