@@ -182,7 +182,7 @@ bool Library::readArchive(uint16 id, uint offset) {
 		}
 
 		Common::Array<Variable> arguments = {archive.id};
-		g_engine->callFunction(kXLibraryLoad, arguments);
+		g_engine->runEvent(kXLibraryLoad, arguments);
 	}
 
 	return true;

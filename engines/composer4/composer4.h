@@ -34,8 +34,8 @@
 #include "engines/savestate.h"
 #include "graphics/screen.h"
 
-#include "composer4/detection.h"
 #include "composer4/base.h"
+#include "composer4/detection.h"
 
 namespace Composer4 {
 
@@ -104,6 +104,8 @@ public:
 	}
 
 	FunctionResult callFunction(uint16 opcode, Common::Array<Variable> &arguments);
+	FunctionResult runEvent(uint16 id, Common::Array<Variable> &arguments);
+	FunctionResult runScript(uint16 id, Common::Array<Variable> &arguments);
 
 	Common::SeekableReadStream *loadResource(uint16 id, ResourceType type, bool segmented = false);
 
@@ -114,9 +116,24 @@ public:
 	uint16_t loadLibrary(uint16 id);
 	bool freeLibrary(uint16 id);
 
+	void startTimer(uint index, uint duration, uint16 id, uint count);
+	void stopTimer(uint index);
+	void suspendTimer(uint index, bool suspend);
+	void clearDeadTimers();
+	void updateTimers(uint time);
+
 private:
 	Common::Array<Library *> _libraries;
 	Common::ScopedPtr<ButtonsContainer> _buttonsMan;
+
+	struct Timer {
+		uint32 baseTime = 0;
+		uint32 duration = 0;
+		uint32 count = 0;
+		uint16 scriptId = 0;
+		uint32 savedCount = 0;
+	};
+	Timer _timers[16];
 };
 
 extern Composer4Engine *g_engine;

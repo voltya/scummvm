@@ -121,12 +121,34 @@ FunctionResult Composer4Engine::callFunction(uint16 opcode, Common::Array<Variab
 		_buttonsMan->activateButton(arguments[0].u16, opcode == kActivateButton);
 		// update cursor
 		return FunctionResult(1);
+
+	case kStartTimer:
+		startTimer(arguments[0].u32, arguments[1].u32, arguments[2].u16, UINT_MAX);
+		return FunctionResult(0);
+	case kStopTimer:
+		stopTimer(arguments[0].u32);
+		return FunctionResult(0);
+	case kSingleEvent:
+		startTimer(arguments[0].u32, arguments[1].u32, arguments[2].u16, 1);
+		return FunctionResult(0);
+	case kSuspendTimer:
+		suspendTimer(arguments[0].u32, arguments[1].u8);
+		return FunctionResult(0);
+
 	default:
 		debug("function %d is not supported yet", opcode);
 		break;
 	}
 
 	return result;
+}
+
+FunctionResult Composer4Engine::runEvent(uint16 id, Common::Array<Variable> &arguments) {
+	return FunctionResult(0);
+}
+
+FunctionResult Composer4Engine::runScript(uint16 id, Common::Array<Variable> &arguments) {
+	return FunctionResult(0);
 }
 
 Common::SeekableReadStream *Composer4Engine::loadResource(uint16 id, ResourceType type, bool segmented) {
@@ -173,6 +195,60 @@ uint16_t Composer4Engine::loadLibrary(uint16 id) {
 
 bool Composer4Engine::freeLibrary(uint16 id) {
 	return false;
+}
+
+void Composer4Engine::startTimer(uint index, uint duration, uint16 id, uint count) {
+	_timers[index].baseTime = _system->getMillis();
+	_timers[index].duration = 10 * duration;
+	_timers[index].scriptId = id;
+	_timers[index].count = count;
+}
+
+void Composer4Engine::stopTimer(uint index) {
+	_timers[index].scriptId = 0;
+	_timers[index].count = 0;
+}
+
+void Composer4Engine::suspendTimer(uint index, bool suspend) {
+	if (suspend) {
+		if (!_timers[index].duration)
+			return;
+		_timers[index].savedCount = _timers[index].count;
+		_timers[index].baseTime -= _system->getMillis();
+		_timers[index].count = 0;
+	} else {
+		if (_timers[index].duration)
+			return;
+		_timers[index].count = _timers[index].savedCount;
+		_timers[index].baseTime += _system->getMillis();
+		_timers[index].savedCount = 0;
+	}
+}
+
+void Composer4Engine::clearDeadTimers() {
+	for (uint i = 0; i < ARRAYSIZE(_timers); ++i) {
+		Common::ScopedPtr<Common::SeekableReadStream> stream{loadResource(_timers[i].scriptId, ResourceType::kSound)};
+		if (!stream)
+			stopTimer(i);
+	}
+}
+
+void Composer4Engine::updateTimers(uint time) {
+	for (uint i = 0; i < ARRAYSIZE(_timers); ++i) {
+		if (_timers[i].count && (_timers[i].baseTime + _timers[i].duration) <= time) {
+			if (_timers[i].count != UINT_MAX) {
+				_timers[i].count--;
+			}
+			_timers[i].baseTime = time;
+
+			Common::Array<Variable> arguments = {1, Variable(i)};
+			if (_timers[i].scriptId) {
+				runScript(_timers[i].scriptId, arguments);
+			} else {
+				runEvent(kXTimer, arguments);
+			}
+		}
+	}
 }
 
 } // namespace Composer4
