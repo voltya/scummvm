@@ -19,6 +19,7 @@
  *
  */
 
+#include "audio/mixer.h"
 #include "common/config-manager.h"
 #include "common/debug-channels.h"
 #include "common/events.h"
@@ -31,6 +32,30 @@
 #include "composer4/composer4.h"
 #include "composer4/console.h"
 #include "composer4/library.h"
+
+enum SoundChannel {
+	kVoiceChannel = 0,
+	kSfx1Channel,
+	kSfx2Channel,
+	kMusicChannel,
+
+	kChannelsCount = kMusicChannel + 1
+};
+
+static Audio::Mixer::SoundType mapChannelToSoundType(uint index) {
+	switch (index) {
+	case kVoiceChannel:
+		return Audio::Mixer::kSpeechSoundType;
+	case kSfx1Channel:
+	case kSfx2Channel:
+		return Audio::Mixer::kSFXSoundType;
+	case kMusicChannel:
+		return Audio::Mixer::kMusicSoundType;
+	default:
+		assert(0);
+		return Audio::Mixer::kPlainSoundType;
+	}
+}
 
 namespace Composer4 {
 
@@ -134,6 +159,12 @@ FunctionResult Composer4Engine::callFunction(uint16 opcode, Common::Array<Variab
 	case kSuspendTimer:
 		suspendTimer(arguments[0].u32, arguments[1].u8);
 		return FunctionResult(0);
+
+	case kSetSoundVolume: {
+		int volume = (arguments[1].u32 + 5000) * Audio::Mixer::kMaxMixerVolume / 5000;
+		_mixer->setVolumeForSoundType(mapChannelToSoundType(arguments[0].u32), volume);
+		return FunctionResult(0);
+	}
 
 	default:
 		debug("function %d is not supported yet", opcode);
