@@ -112,9 +112,9 @@ public:
 	void onResourceLoad(uint16 id, ResourceType type);
 	void onResourceFree(uint16 id, ResourceType type);
 
-	Library *findLibrary(uint16 id);
+	int32 findLibraryIndex(uint16 id) const;
 	uint16_t loadLibrary(uint16 id);
-	bool freeLibrary(uint16 id);
+	void freeLibrary(uint16 id);
 
 	void startTimer(uint index, uint duration, uint16 id, uint count);
 	void stopTimer(uint index);
@@ -134,6 +134,13 @@ private:
 		uint32 savedCount = 0;
 	};
 	Timer _timers[16];
+
+	struct LibraryLoadTask {
+		uint16 id = 0;
+		bool load = false;
+	};
+	Common::Array<LibraryLoadTask> _libraryLoadTasks;
+	uint _callsDepth = 0;
 };
 
 extern Composer4Engine *g_engine;

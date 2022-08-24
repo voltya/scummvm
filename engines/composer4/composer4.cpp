@@ -170,6 +170,31 @@ FunctionResult Composer4Engine::callFunction(uint16 opcode, Common::Array<Variab
 		return FunctionResult(0);
 	}
 
+	case kReloadLibrary: // not used in games
+		_libraryLoadTasks.push_back({arguments[0].u16, true});
+		break;
+	case kLoadLibrary: {
+		if (findLibraryIndex(arguments[0].u16) != -1) {
+			return FunctionResult(0);
+		}
+
+		if (arguments[1].u32 <= 4) { // priority
+			return FunctionResult(loadLibrary(arguments[0].u16));
+		}
+
+		return FunctionResult(1);
+	}
+	case kFreeLibrary:
+		_libraryLoadTasks.push_back({arguments[0].u16, false});
+		break;
+	case kEnableLibrary: {
+		auto index = findLibraryIndex(arguments[0].u16);
+		if (index != -1) {
+			_libraries[index]->enable(arguments[1].u8);
+		}
+		return FunctionResult(0);
+	}
+
 	default:
 		debug("function %d is not supported yet", opcode);
 		break;
@@ -231,7 +256,21 @@ FunctionResult Composer4Engine::runEvent(uint16 id, Common::Array<Variable> &arg
 }
 
 FunctionResult Composer4Engine::runScript(uint16 id, Common::Array<Variable> &arguments) {
-	return FunctionResult(0);
+	_callsDepth++;
+
+	Variable result; // = _scriptEngine->run(id, arguments);
+	if (_callsDepth == 1) {
+		for (const auto &task : _libraryLoadTasks) {
+			if (task.load) {
+				loadLibrary(task.id);
+			} else {
+				freeLibrary(task.id);
+			}
+		}
+		_libraryLoadTasks.clear();
+	}
+	_callsDepth--;
+	return result;
 }
 
 Common::SeekableReadStream *Composer4Engine::loadResource(uint16 id, ResourceType type, bool segmented) {
@@ -268,16 +307,51 @@ void Composer4Engine::onResourceFree(uint16 id, ResourceType type) {
 	}
 }
 
-Library *Composer4Engine::findLibrary(uint16 id) {
-	return nullptr;
+int32 Composer4Engine::findLibraryIndex(uint16 id) const {
+	for (uint i = 0; i < _libraries.size(); ++i) {
+		if (_libraries[i]->getId() == id) {
+			return i;
+		}
+	}
+	return -1;
 }
 
 uint16_t Composer4Engine::loadLibrary(uint16 id) {
+	if (findLibraryIndex(id) != -1) {
+		return 0;
+	}
+
+	Common::String fileName;
+	// todo: get fileName from ini
+
+	_libraries.push_back(new Library(id));
+	// important: we should add library to list before opening
+	if (_libraries.back()->open(fileName)) {
+		return id;
+	}
+
+	delete _libraries.back();
+	_libraries.pop_back();
 	return 0;
 }
 
-bool Composer4Engine::freeLibrary(uint16 id) {
-	return false;
+void Composer4Engine::freeLibrary(uint16 id) {
+	for (uint i = 0; i < _libraries.size(); ++i) {
+		if (_libraries[i]->getId() == id) {
+			delete _libraries[i];
+			_libraries.erase(_libraries.begin() + i);
+		}
+	}
+
+	const auto libraryIndex = findLibraryIndex(id);
+	if (libraryIndex != -1) {
+		delete _libraries.remove_at(libraryIndex);
+	}
+	clearDeadTimers();
+	if (libraryIndex != -1) {
+		Common::Array<Variable> arguments = {id};
+		runEvent(kXLibraryFree, arguments);
+	}
 }
 
 void Composer4Engine::startTimer(uint index, uint duration, uint16 id, uint count) {
