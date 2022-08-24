@@ -122,6 +122,11 @@ public:
 	void clearDeadTimers();
 	void updateTimers(uint time);
 
+	int setPalette(uint16 id, byte brightness);
+	void setPaletteFragment(byte *src, uint index, uint count, byte brightness) const;
+	void getPaletteFragment(byte *dst, uint index, uint count) const;
+	void getResourcePaletteFragment(uint16 id, byte *dst, uint index, uint count);
+
 private:
 	Common::Array<Library *> _libraries;
 	Common::ScopedPtr<ButtonsContainer> _buttonsMan;

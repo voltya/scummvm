@@ -195,6 +195,18 @@ FunctionResult Composer4Engine::callFunction(uint16 opcode, Common::Array<Variab
 		return FunctionResult(0);
 	}
 
+	case kSetPalette:
+		return FunctionResult(setPalette(arguments[0].u16, arguments[1].u8));
+	case kSetPaletteFragment:
+		setPaletteFragment(static_cast<byte *>(arguments[0].pointer), arguments[1].u32, arguments[2].u32, arguments[3].u8);
+		return FunctionResult(0);
+	case kGetPaletteFragment:
+		getPaletteFragment(static_cast<byte *>(arguments[0].pointer), arguments[1].u32, arguments[2].u32);
+		return FunctionResult(0);
+	case kGetResourcePaletteFragment:
+		getResourcePaletteFragment(arguments[0].u16, static_cast<byte *>(arguments[1].pointer), arguments[2].u32, arguments[3].u32);
+		return FunctionResult(0);
+
 	default:
 		debug("function %d is not supported yet", opcode);
 		break;
@@ -406,6 +418,74 @@ void Composer4Engine::updateTimers(uint time) {
 			}
 		}
 	}
+}
+
+int Composer4Engine::setPalette(uint16 id, byte brightness) {
+	Common::ScopedPtr<Common::SeekableReadStream> stream{loadResource(id, ResourceType::kPalette)};
+	if (id) {
+		Common::ScopedPtr<Common::SeekableReadStream> stream{loadResource(id, ResourceType::kPalette)};
+		if (stream) {
+			uint16 count = MIN<uint16_t>(256, stream->readUint16LE());
+			byte palette[256 * 3];
+			stream->read(palette, count * 3);
+			setPaletteFragment(palette, 0, count, brightness);
+			return 1;
+		}
+		return 0;
+	}
+
+	// alter brightness
+	setPaletteFragment(nullptr, 0, 256, brightness);
+	return 1;
+}
+
+void Composer4Engine::setPaletteFragment(byte *src, uint index, uint count, byte brightness) const {
+	if (index > 255)
+		return;
+
+	count = MIN(count, 256 - index);
+	brightness = MIN<byte>(brightness, 100);
+
+	byte entries[256 * 3];
+
+	_system->getPaletteManager()->grabPalette(entries, index, count);
+
+	if (src) {
+		memcpy(entries + index * 3, src, count * 3);
+	}
+
+	for (uint i = 0; i < count; ++i) {
+		entries[i] = (entries[i] * brightness) / 100;
+	}
+
+	entries[ARRAYSIZE(entries) - 1] = UINT8_MAX;
+	entries[ARRAYSIZE(entries) - 2] = UINT8_MAX;
+	entries[ARRAYSIZE(entries) - 3] = UINT8_MAX;
+	entries[0] = 0;
+	entries[1] = 0;
+	entries[2] = 0;
+
+	_system->getPaletteManager()->setPalette(entries, 0, 256);
+}
+
+void Composer4Engine::getPaletteFragment(byte *dst, uint index, uint count) const {
+	if (index <= 255) {
+		count = MIN(count, 256 - index);
+		_system->getPaletteManager()->grabPalette(dst, index, count);
+	}
+}
+
+void Composer4Engine::getResourcePaletteFragment(uint16 id, byte *dst, uint index, uint count) {
+	Common::ScopedPtr<Common::SeekableReadStream> stream{loadResource(id, ResourceType::kPalette)};
+	if (!stream)
+		return;
+	uint16 entriesCount = stream->readUint16LE();
+
+	index = MIN<uint>(entriesCount - 1, index);
+	count = MIN(count, entriesCount - index);
+
+	stream->skip(3 * index);
+	stream->read(dst, count * 3);
 }
 
 } // namespace Composer4
