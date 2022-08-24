@@ -35,11 +35,15 @@
 #include "graphics/screen.h"
 
 #include "composer4/detection.h"
+#include "composer4/base.h"
 
 namespace Composer4 {
 
 struct Composer4GameDescription;
 
+class Library;
+
+// Based on 4.0.0.36
 class Composer4Engine : public Engine {
 private:
 	const ADGameDescription *_gameDescription;
@@ -97,6 +101,20 @@ public:
 		Common::Serializer s(stream, nullptr);
 		return syncGame(s);
 	}
+
+	FunctionResult callFunction(uint16 opcode, Common::Array<Variable> &arguments);
+
+	Common::SeekableReadStream *loadResource(uint16 id, ResourceType type, bool segmented = false);
+
+	void onResourceLoad(uint16 id, ResourceType type);
+	void onResourceFree(uint16 id, ResourceType type);
+
+	Library *findLibrary(uint16 id);
+	uint16_t loadLibrary(uint16 id);
+	bool freeLibrary(uint16 id);
+
+private:
+	Common::Array<Library *> _libraries;
 };
 
 extern Composer4Engine *g_engine;

@@ -29,7 +29,7 @@
 
 #include "composer4/composer4.h"
 #include "composer4/console.h"
-#include "composer4/detection.h"
+#include "composer4/library.h"
 
 namespace Composer4 {
 
@@ -42,6 +42,10 @@ Composer4Engine::Composer4Engine(OSystem *syst, const ADGameDescription *gameDes
 
 Composer4Engine::~Composer4Engine() {
 	delete _screen;
+
+	for (const auto *library : _libraries) {
+		delete library;
+	}
 }
 
 uint32 Composer4Engine::getFeatures() const {
@@ -103,6 +107,50 @@ Common::Error Composer4Engine::syncGame(Common::Serializer &s) {
 	s.syncAsUint32LE(dummy);
 
 	return Common::kNoError;
+}
+
+FunctionResult Composer4Engine::callFunction(uint16 opcode, Common::Array<Variable> &arguments) {
+	FunctionResult result;
+	return result;
+}
+
+Common::SeekableReadStream *Composer4Engine::loadResource(uint16 id, ResourceType type, bool segmented) {
+	for (const auto &library : _libraries) {
+		auto *resource = library->loadResource(id, type, segmented);
+		if (resource)
+			return resource;
+	}
+	return nullptr;
+}
+
+void Composer4Engine::onResourceLoad(uint16 id, ResourceType type) {
+	switch (type) {
+	case ResourceType::kButton:
+	case ResourceType::kVariable:
+	default:
+		break;
+	}
+}
+
+void Composer4Engine::onResourceFree(uint16 id, ResourceType type) {
+	switch (type) {
+	case ResourceType::kButton:
+	case ResourceType::kVariable:
+	default:
+		break;
+	}
+}
+
+Library *Composer4Engine::findLibrary(uint16 id) {
+	return nullptr;
+}
+
+uint16_t Composer4Engine::loadLibrary(uint16 id) {
+	return 0;
+}
+
+bool Composer4Engine::freeLibrary(uint16 id) {
+	return false;
 }
 
 } // namespace Composer4

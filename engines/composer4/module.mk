@@ -4,6 +4,7 @@ MODULE_OBJS = \
 	composer4.o \
 	console.o \
 	metaengine.o \
+	library.o
 
 # This module can be built as a plugin
 ifeq ($(ENABLE_COMPOSER4), DYNAMIC_PLUGIN)
