@@ -140,9 +140,9 @@ Common::Error Composer4Engine::syncGame(Common::Serializer &s) {
 FunctionResult Composer4Engine::callFunction(uint16 opcode, Common::Array<Variable> &arguments) {
 	FunctionResult result;
 
-	if (opcode < kFirstFunctionOpcode) {
-		return runEvent(opcode, arguments);
-	}
+	auto eventResult = runEvent(opcode, arguments);
+	if (eventResult)
+		return eventResult;
 
 	switch (opcode) {
 	case kActivateButton:
@@ -170,9 +170,11 @@ FunctionResult Composer4Engine::callFunction(uint16 opcode, Common::Array<Variab
 		return FunctionResult(0);
 	}
 
-	case kReloadLibrary: // not used in games
+/*
+	case kReloadLibrary:
 		_libraryLoadTasks.push_back({arguments[0].u16, true});
 		break;
+*/
 	case kLoadLibrary: {
 		if (findLibraryIndex(arguments[0].u16) != -1) {
 			return FunctionResult(0);
@@ -208,7 +210,7 @@ FunctionResult Composer4Engine::callFunction(uint16 opcode, Common::Array<Variab
 		return FunctionResult(0);
 
 	default:
-		debug("function %d is not supported yet", opcode);
+		error("function %d is not supported yet", opcode);
 		break;
 	}
 
@@ -410,7 +412,7 @@ void Composer4Engine::updateTimers(uint time) {
 			}
 			_timers[i].baseTime = time;
 
-			Common::Array<Variable> arguments = {1, Variable(i)};
+			Common::Array<Variable> arguments = {Variable(i)};
 			if (_timers[i].scriptId) {
 				runScript(_timers[i].scriptId, arguments);
 			} else {
