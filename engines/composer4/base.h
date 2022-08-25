@@ -219,7 +219,7 @@ enum FunctionOpcode : uint16 {
 	kUniTextOutExWidthCalc = 0x9286,
 	kUniTextOutExCharByPoint = 0x9287,
 	kUniTextOutExRectByChar = 0x9288,
-	// what does KA mean ?
+	// KA = Knowledge Adventure
 	kKAGetIniString = 0x946f,
 	kKAGetUser = 0x9664,
 	kKACloseUser = 0x9665,
