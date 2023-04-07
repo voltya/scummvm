@@ -65,6 +65,9 @@ Common::Error Composer4Engine::run() {
 	if (!_bookIni.loadFromFile("BOOK.INI"))
 		return Common::kNoGameDataFoundError;
 
+	if (!loadLibrary(0))
+		return Common::kNoGameDataFoundError;
+
 	Common::String windowTitle;
 	if (_bookIni.getKey("WindowTitle", "Common", windowTitle)) {
 		_system->setWindowCaption(windowTitle);
@@ -122,12 +125,7 @@ Common::Path Composer4Engine::getFileName(int id, const Common::String &section)
 	Common::String stringId = Common::String::format("%d", id);
 	Common::String fileName;
 	if (_bookIni.getKey(stringId, section, fileName)) {
-
-		if (!fileName.empty() && fileName[0] == '~') {
-			// after second slash is our path
-			fileName.replace(0, fileName.findFirstOf('\\', 3) + 1, "");
-		}
-
+		fileName.replace(0, fileName.findFirstOf('\\', 1) + 1, "");
 		return {fileName, '\\'};
 	}
 

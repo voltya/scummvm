@@ -39,7 +39,7 @@ Library::~Library() {
 }
 
 bool Library::open(const Common::Path &filename) {
-	if (_file.open(filename)) {
+	if (!_file.open(filename)) {
 		return false;
 	}
 
@@ -132,10 +132,10 @@ bool Library::readArchive(uint32 offset, bool root) {
 		if (!_file.seek(table_offset + type_offset))
 			return false;
 
-		auto &resources = get_type_resources(type);
-
 		ResourceEntry resource{};
 		while (true) {
+			auto &resources = get_type_resources(type);
+
 			resource.offset = _file.readUint32LE();
 			if (!resource.offset)
 				break;
@@ -147,13 +147,14 @@ bool Library::readArchive(uint32 offset, bool root) {
 			_file.skip(4); // ref_count
 
 			if (!isArchive) {
+				resource.offset = resource.offset + offset;
 				resources.push_back(resource);
 				if (root) {
 					g_engine->callFunction(FunctionOpcode::kxResourceLoad, resource.id, (uint32)type);
 				}
 			} else {
 				auto pos = _file.pos();
-				readArchive(resource.offset + offset, false);
+				readArchive(resource.offset, false);
 				_file.seek(pos);
 			}
 		}
