@@ -47,6 +47,13 @@ enum class FunctionOpcode : uint16 {
 	kxMouseOut = 15,
 	kxMouseOver = 16,
 	kxTimer = 17,
+	kxFWDone = 18,
+	kxFWSkipCustom = 19,
+	kxFWAreaChanged = 20,
+	kxResourceLoad = 21,
+	kxResourceRelease = 22,
+	kxPrintPage = 23,
+	kxPrintError = 24,
 	kxLibLoadError = 25,
 	kxSmackerStart = 30,
 	kxSmackerEnd = 31,
@@ -234,6 +241,7 @@ enum class ResourceType {
 	// kMouthSync = MKTAG('A', 'A', 'A', '1'),
 	kUniFont = MKTAG('U', 'F', 'I', '1'),
 	kFont = MKTAG('F', 'O', 'N', 'T'),
+	kNames = MKTAG(0x54, 0x2E, 0x59, 0x87)
 };
 
 } // End of namespace Composer4
