@@ -19,15 +19,17 @@
  *
  */
 
-#include "composer4/defs.h"
 #include "composer4/composer4.h"
-#include "composer4/detection.h"
-#include "composer4/console.h"
-#include "common/scummsys.h"
+
 #include "common/config-manager.h"
 #include "common/debug-channels.h"
 #include "common/events.h"
+#include "common/scummsys.h"
 #include "common/system.h"
+#include "composer4/console.h"
+#include "composer4/defs.h"
+#include "composer4/detection.h"
+#include "composer4/library.h"
 #include "engines/util.h"
 #include "graphics/palette.h"
 
@@ -36,7 +38,7 @@ namespace Composer4 {
 Composer4Engine *g_engine;
 
 Composer4Engine::Composer4Engine(OSystem *syst, const ADGameDescription *gameDesc) : Engine(syst),
-	_gameDescription(gameDesc), _randomSource("Composer4") {
+																					 _gameDescription(gameDesc), _randomSource("Composer4") {
 	g_engine = this;
 }
 
@@ -71,7 +73,7 @@ Common::Error Composer4Engine::run() {
 	_screen->update();
 
 	// Simple event handling loop
-	byte pal[256 * 3] = { 0 };
+	byte pal[256 * 3] = {0};
 	Common::Event e;
 	int offset = 0;
 
@@ -106,7 +108,87 @@ Common::Error Composer4Engine::syncGame(Common::Serializer &s) {
 }
 
 Variable Composer4Engine::callFunction(FunctionOpcode opcode, Common::Array<Variable> &vars) {
-	return Variable{};
+	switch (opcode) {
+	case FunctionOpcode::kEnableLibrary:
+		if (Library *library = findLibrary(vars[0].i32))
+			library->enable(vars[1].u8);
+		return 0;
+	case FunctionOpcode::kLoadLibrary:
+		if (findLibrary(vars[0].u16)) {
+			return 0;
+		}
+
+		if (vars[1].i32 <= 4) { // priority
+			return loadLibrary(vars[0].u16);
+		}
+
+		_libraryLoadTasks.push_back({vars[0].i32, true});
+		return 1;
+	case FunctionOpcode::kFreeLibrary:
+		_libraryLoadTasks.push_back({vars[0].i32, false});
+		return 0;
+	}
+
+	return {};
+}
+
+Common::SeekableReadStream *Composer4Engine::openResource(int id, ResourceType type) {
+	for (auto *library : _libraries) {
+		auto *stream = library->openResource(id, type);
+		if (stream)
+			return stream;
+	}
+	return nullptr;
+}
+
+bool Composer4Engine::loadLibrary(int id) {
+	if (!id) {
+		// todo: get startup id
+	}
+
+	if (findLibrary(id)) {
+		return false;
+	}
+
+	auto *library = new Library(id);
+	_libraries.insert_at(0, library);
+
+	// todo: get filename from ini
+	if (_libraries.front()->open(Common::Path{})) {
+		return true;
+	}
+
+	delete _libraries.front();
+	_libraries.remove_at(0);
+
+	return false;
+}
+
+Library *Composer4Engine::findLibrary(int id) {
+	for (auto *library : _libraries) {
+		if (library->getID() == id) {
+			return library;
+		}
+	}
+	return nullptr;
+}
+
+void Composer4Engine::freeLibrary(int id) {
+	auto remove_library = [this](int id) {
+		for (uint i = 0; i < _libraries.size(); ++i) {
+			if (_libraries[i]->getID() == id) {
+				delete _libraries[i];
+				_libraries.remove_at(i);
+				return true;
+			}
+		}
+		return false;
+	};
+
+	if (remove_library(id)) {
+		// clearTimers();
+		callFunction(FunctionOpcode::kxLibraryFree, id);
+	}
 }
 
 } // End of namespace Composer4

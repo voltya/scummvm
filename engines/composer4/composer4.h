@@ -39,6 +39,8 @@
 
 namespace Composer4 {
 
+class Library;
+
 struct Composer4GameDescription;
 
 class Composer4Engine : public Engine {
@@ -105,6 +107,20 @@ public:
 
 	Variable callFunction(FunctionOpcode opcode, Common::Array<Variable> &vars);
 
+
+	Common::SeekableReadStream *openResource(int id, ResourceType type);
+
+	bool loadLibrary(int id);
+	void freeLibrary(int id);
+	Library *findLibrary(int id);
+
+private:
+	struct LibraryLoadTask {
+		int id = 0;
+		bool load = false;
+	};
+	Common::Array<Library *> _libraries;
+	Common::Array<LibraryLoadTask> _libraryLoadTasks;
 };
 
 extern Composer4Engine *g_engine;
