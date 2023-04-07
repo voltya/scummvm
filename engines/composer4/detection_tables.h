@@ -21,23 +21,37 @@
 
 namespace Composer4 {
 
-const PlainGameDescriptor composer4Games[] = {
-	{ "composer4", "Composer4" },
-	{ 0, 0 }
-};
+const PlainGameDescriptor gameNames[] = {
+	{"jspreschool99", "JumpStart Preschool 1999 Edition"},
+	{"jsmath", "JumpStart Math for Kindergartners"},
+	{"fisherprice", "Fisher-Price's Ready for School: Reading"},
+	{0, 0}};
 
 const ADGameDescription gameDescriptions[] = {
-	{
-		"composer4",
-		nullptr,
-		AD_ENTRY1s("file1.bin", "00000000000000000000000000000000", 11111),
-		Common::EN_ANY,
-		Common::kPlatformDOS,
-		ADGF_UNSTABLE,
-		GUIO1(GUIO_NONE)
-	},
+	{"jspreschool99",
+	 nullptr,
+	 AD_ENTRY1s("BOOK.INI", NULL, -1),
+	 Common::EN_ANY,
+	 Common::kPlatformWindows,
+	 ADGF_UNSTABLE | ADGF_DROPPLATFORM,
+	 GUIO1(GUIO_NONE)},
 
-	AD_TABLE_END_MARKER
-};
+	{"jsmath",
+	 nullptr,
+	 AD_ENTRY1s("BOOK.INI", NULL, -1),
+	 Common::EN_ANY,
+	 Common::kPlatformWindows,
+	 ADGF_UNSTABLE | ADGF_DROPPLATFORM,
+	 GUIO1(GUIO_NONE)},
+
+	{"fisherprice",
+	 nullptr,
+	 AD_ENTRY1s("BOOK.INI", NULL, -1),
+	 Common::EN_ANY,
+	 Common::kPlatformWindows,
+	 ADGF_UNSTABLE | ADGF_DROPPLATFORM,
+	 GUIO1(GUIO_NONE)},
+
+	AD_TABLE_END_MARKER};
 
 } // End of namespace Composer4

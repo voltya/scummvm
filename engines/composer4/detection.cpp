@@ -39,7 +39,7 @@ const DebugChannelDef Composer4MetaEngineDetection::debugFlagList[] = {
 };
 
 Composer4MetaEngineDetection::Composer4MetaEngineDetection() : AdvancedMetaEngineDetection(Composer4::gameDescriptions,
-	sizeof(ADGameDescription), Composer4::composer4Games) {
+	sizeof(ADGameDescription), Composer4::gameNames) {
 }
 
 REGISTER_PLUGIN_STATIC(COMPOSER4_DETECTION, PLUGIN_TYPE_ENGINE_DETECTION, Composer4MetaEngineDetection);

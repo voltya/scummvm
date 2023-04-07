@@ -34,7 +34,7 @@ enum Composer4DebugChannels {
 	kDebugScript   = 1 << 4,
 };
 
-extern const PlainGameDescriptor composer4Games[];
+extern const PlainGameDescriptor gameNames[];
 
 extern const ADGameDescription gameDescriptions[];
 
