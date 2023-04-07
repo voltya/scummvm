@@ -260,7 +260,7 @@ union Variable {
 	uint32 u32;
 	int32 i32;
 	float f32;
-	__unaligned void *pointer; // use Common::UnalignedPtr
+	/*__unaligned*/ void *pointer; // use Common::UnalignedPtr
 };
 
 } // End of namespace Composer4
