@@ -19,6 +19,7 @@
  *
  */
 
+#include "composer4/defs.h"
 #include "composer4/composer4.h"
 #include "composer4/detection.h"
 #include "composer4/console.h"
@@ -102,6 +103,10 @@ Common::Error Composer4Engine::syncGame(Common::Serializer &s) {
 	s.syncAsUint32LE(dummy);
 
 	return Common::kNoError;
+}
+
+Variable Composer4Engine::callFunction(FunctionOpcode opcode, Common::Array<Variable> &vars) {
+	return Variable{};
 }
 
 } // End of namespace Composer4

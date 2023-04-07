@@ -123,8 +123,6 @@ enum class FunctionOpcode : uint16 {
 	kLoadSprite = 35090,
 	kSaveSprite = 35091,
 	kFlushScreen = 35100,
-	// kResourceLoad = 35321,
-	// kResourceRelease = 35322,
 
 	// FreeWalk
 	kFWSetMap = 36003,
@@ -225,7 +223,7 @@ enum class FunctionOpcode : uint16 {
 	// kSwitchScreen = 50114,
 };
 
-enum class ResourceType {
+enum class ResourceType : uint32 {
 	kBitmap = MKTAG('B', 'M', 'A', 'P'),
 	kSound = MKTAG('W', 'A', 'V', 'E'),
 	kPalette = MKTAG('C', 'T', 'B', 'L'),
@@ -237,11 +235,32 @@ enum class ResourceType {
 	kWalkMap = MKTAG('W', 'M', 'A', 'P'),
 	kShadeTable = MKTAG('S', 'T', 'B', 'L'),
 	kTable = MKTAG('D', 'T', 'A', 'B'),
-	// kVariable = MKTAG('V', 'A', 'R', 'I'),
-	// kMouthSync = MKTAG('A', 'A', 'A', '1'),
+	kVariable = MKTAG('V', 'A', 'R', 'I'),
+	kMouthSync = MKTAG('A', 'A', 'A', '1'),
 	kUniFont = MKTAG('U', 'F', 'I', '1'),
 	kFont = MKTAG('F', 'O', 'N', 'T'),
-	kNames = MKTAG(0x54, 0x2E, 0x59, 0x87)
+	kNames = MKTAG(0x54, 0x2E, 0x59, 0x87) // only in debug resources
+};
+
+union Variable {
+	Variable() : Variable(nullptr) {}
+	Variable(byte v) : Variable(nullptr) { u8 = v; }
+	Variable(int8 v) : Variable(nullptr) { u8 = v; }
+	Variable(int16 v) : Variable(nullptr) { i16 = v; }
+	Variable(uint16 v) : Variable(nullptr) { u16 = v; }
+	Variable(int32 v) : Variable(nullptr) { i32 = v; }
+	Variable(uint32 v) : Variable(nullptr) { u32 = v; }
+	Variable(float v) : Variable(nullptr) { f32 = v; }
+	Variable(void *v) : pointer(v) {}
+
+	byte u8;
+	int8 i8;
+	uint16 u16;
+	int16 i16;
+	uint32 u32;
+	int32 i32;
+	float f32;
+	__unaligned void *pointer; // use Common::UnalignedPtr
 };
 
 } // End of namespace Composer4

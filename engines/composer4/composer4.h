@@ -35,6 +35,7 @@
 #include "graphics/screen.h"
 
 #include "composer4/detection.h"
+#include "composer4/defs.h"
 
 namespace Composer4 {
 
@@ -95,6 +96,15 @@ public:
 		Common::Serializer s(stream, nullptr);
 		return syncGame(s);
 	}
+
+	template<typename... Args>
+	Variable callFunction(FunctionOpcode opcode, Args... args) {
+		Common::Array<Variable> arguments = {args...};
+		return callFunction(opcode, arguments);
+	}
+
+	Variable callFunction(FunctionOpcode opcode, Common::Array<Variable> &vars);
+
 };
 
 extern Composer4Engine *g_engine;
