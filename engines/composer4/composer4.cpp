@@ -62,6 +62,23 @@ Common::Error Composer4Engine::run() {
 	// Set the engine's debugger console
 	setDebugger(new Console());
 
+	if (!_bookIni.loadFromFile("BOOK.INI"))
+		return Common::kNoGameDataFoundError;
+
+	Common::String windowTitle;
+	if (_bookIni.getKey("WindowTitle", "Common", windowTitle)) {
+		_system->setWindowCaption(windowTitle);
+	}
+
+	uint fps = 8;
+	Common::String string_fps;
+	if (_bookIni.getKey("FPS", "Common", string_fps)) {
+		fps = strtol(string_fps.c_str(), nullptr, 10);
+		if (!fps) {
+			fps = 8;
+		}
+	}
+
 	return Common::kNoError;
 }
 
@@ -101,6 +118,22 @@ Variable Composer4Engine::callFunction(FunctionOpcode opcode, Common::Array<Vari
 	return {};
 }
 
+Common::Path Composer4Engine::getFileName(int id, const Common::String &section) const {
+	Common::String stringId = Common::String::format("%d", id);
+	Common::String fileName;
+	if (_bookIni.getKey(stringId, section, fileName)) {
+
+		if (!fileName.empty() && fileName[0] == '~') {
+			// after second slash is our path
+			fileName.replace(0, fileName.findFirstOf('\\', 3) + 1, "");
+		}
+
+		return {fileName, '\\'};
+	}
+
+	return {};
+}
+
 Common::SeekableReadStream *Composer4Engine::openResource(int id, ResourceType type) {
 	for (auto *library : _libraries) {
 		auto *stream = library->openResource(id, type);
@@ -112,7 +145,10 @@ Common::SeekableReadStream *Composer4Engine::openResource(int id, ResourceType t
 
 bool Composer4Engine::loadLibrary(int id) {
 	if (!id) {
-		// todo: get startup id
+		Common::String startupId;
+		if (_bookIni.getKey("Startup", "Common", startupId)) {
+			id = strtol(startupId.c_str(), nullptr, 10);
+		}
 	}
 
 	if (findLibrary(id)) {
@@ -122,8 +158,7 @@ bool Composer4Engine::loadLibrary(int id) {
 	auto *library = new Library(id);
 	_libraries.insert_at(0, library);
 
-	// todo: get filename from ini
-	if (_libraries.front()->open(Common::Path{})) {
+	if (_libraries.front()->open(getFileName(id, "Libs"))) {
 		return true;
 	}
 

@@ -108,6 +108,7 @@ public:
 	Variable callFunction(FunctionOpcode opcode, Common::Array<Variable> &vars);
 
 
+	Common::Path getFileName(int id, const Common::String &section) const;
 	Common::SeekableReadStream *openResource(int id, ResourceType type);
 
 	bool loadLibrary(int id);
@@ -121,6 +122,8 @@ private:
 	};
 	Common::Array<Library *> _libraries;
 	Common::Array<LibraryLoadTask> _libraryLoadTasks;
+
+	Common::INIFile _bookIni;
 };
 
 extern Composer4Engine *g_engine;
