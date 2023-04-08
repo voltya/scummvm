@@ -126,10 +126,10 @@ Variable Composer4Engine::callFunction(FunctionOpcode opcode, Common::Array<Vari
 			return loadLibrary(vars[0].u16);
 		}
 
-		_libraryLoadTasks.push_back({vars[0].i32, true});
+		_libraryLoadTasks.push_back(LibraryLoadTask{vars[0].i32, true});
 		return 1;
 	case FunctionOpcode::kFreeLibrary:
-		_libraryLoadTasks.push_back({vars[0].i32, false});
+		_libraryLoadTasks.push_back(LibraryLoadTask{vars[0].i32, false});
 		return 0;
 	}
 

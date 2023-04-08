@@ -118,8 +118,8 @@ public:
 
 private:
 	struct LibraryLoadTask {
-		int id = 0;
-		bool load = false;
+		int id;
+		bool load;
 	};
 	Common::Array<Library *> _libraries;
 	Common::Array<LibraryLoadTask> _libraryLoadTasks;
