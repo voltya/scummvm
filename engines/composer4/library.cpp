@@ -59,7 +59,7 @@ Common::SeekableReadStream *Library::openResource(int id, ResourceType type) {
 		return nullptr;
 
 	for (const auto &type_resources_pair : _resources) {
-		if (type_resources_pair.first == type) {
+		if (type_resources_pair.first != type) {
 			continue;
 		}
 
@@ -146,6 +146,7 @@ bool Library::readArchive(uint32 offset, bool root) {
 			const bool isArchive = (_file.readUint16LE() & 0x2);
 			_file.skip(4); // ref_count
 
+			auto pos = _file.pos();
 			if (!isArchive) {
 				resource.offset = resource.offset + offset;
 				resources.push_back(resource);
@@ -153,10 +154,9 @@ bool Library::readArchive(uint32 offset, bool root) {
 					g_engine->callFunction(FunctionOpcode::kxResourceLoad, resource.id, (uint32)type);
 				}
 			} else {
-				auto pos = _file.pos();
 				readArchive(resource.offset, false);
-				_file.seek(pos);
 			}
+			_file.seek(pos);
 		}
 
 		if (!_file.seek(pos_to_next_type))

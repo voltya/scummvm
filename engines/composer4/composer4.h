@@ -38,6 +38,7 @@
 #include "composer4/defs.h"
 
 namespace Composer4 {
+class Module;
 
 class Library;
 
@@ -124,6 +125,8 @@ private:
 	Common::Array<LibraryLoadTask> _libraryLoadTasks;
 
 	Common::INIFile _bookIni;
+
+	Common::Array<Module *> _modules;
 };
 
 extern Composer4Engine *g_engine;

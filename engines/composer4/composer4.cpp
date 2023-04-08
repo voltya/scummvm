@@ -20,6 +20,7 @@
  */
 
 #include "composer4/composer4.h"
+#include "composer4/button_man.h"
 
 #include "common/config-manager.h"
 #include "common/debug-channels.h"
@@ -40,10 +41,18 @@ Composer4Engine *g_engine;
 Composer4Engine::Composer4Engine(OSystem *syst, const ADGameDescription *gameDesc) : Engine(syst),
 																					 _gameDescription(gameDesc), _randomSource("Composer4") {
 	g_engine = this;
+
+	_modules.push_back(new ButtonManager);
 }
 
 Composer4Engine::~Composer4Engine() {
 	delete _screen;
+	for (auto *library : _libraries) {
+		delete library;
+	}
+	for (auto *engine_module : _modules) {
+		delete engine_module;
+	}
 }
 
 uint32 Composer4Engine::getFeatures() const {
@@ -97,6 +106,12 @@ Common::Error Composer4Engine::syncGame(Common::Serializer &s) {
 }
 
 Variable Composer4Engine::callFunction(FunctionOpcode opcode, Common::Array<Variable> &vars) {
+	for (auto *module : _modules) {
+		Variable ret_value;
+		if (module->callFunction(opcode, vars, ret_value))
+			return ret_value;
+	}
+
 	switch (opcode) {
 	case FunctionOpcode::kEnableLibrary:
 		if (Library *library = findLibrary(vars[0].i32))
