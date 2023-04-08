@@ -6,7 +6,8 @@ MODULE_OBJS = \
 	metaengine.o \
 	library.o \
 	button_man.o \
-	timers_man.o
+	timers_man.o \
+	palette_module.o
 
 # This module can be built as a plugin
 ifeq ($(ENABLE_COMPOSER4), DYNAMIC_PLUGIN)

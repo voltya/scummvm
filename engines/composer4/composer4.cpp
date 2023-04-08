@@ -22,6 +22,7 @@
 #include "composer4/composer4.h"
 #include "composer4/button_man.h"
 #include "composer4/timers_man.h"
+#include "composer4/palette_module.h"
 
 #include "common/config-manager.h"
 #include "common/debug-channels.h"
@@ -45,8 +46,9 @@ Composer4Engine::Composer4Engine(OSystem *syst, const ADGameDescription *gameDes
 
 	_timersMan = new TimersManager;
 
+	_modules.push_back(new PaletteModule);
 	_modules.push_back(new ButtonManager);
-	_modules.push_back(_timersMan);
+	_modules.push_back(_timersMan); 
 }
 
 Composer4Engine::~Composer4Engine() {
