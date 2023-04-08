@@ -38,8 +38,9 @@
 #include "composer4/defs.h"
 
 namespace Composer4 {
-class Module;
 
+class TimersManager;
+class Module;
 class Library;
 
 struct Composer4GameDescription;
@@ -126,6 +127,7 @@ private:
 
 	Common::INIFile _bookIni;
 
+	TimersManager *_timersMan;
 	Common::Array<Module *> _modules;
 };
 

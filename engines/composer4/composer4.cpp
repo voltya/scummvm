@@ -21,6 +21,7 @@
 
 #include "composer4/composer4.h"
 #include "composer4/button_man.h"
+#include "composer4/timers_man.h"
 
 #include "common/config-manager.h"
 #include "common/debug-channels.h"
@@ -42,7 +43,10 @@ Composer4Engine::Composer4Engine(OSystem *syst, const ADGameDescription *gameDes
 																					 _gameDescription(gameDesc), _randomSource("Composer4") {
 	g_engine = this;
 
+	_timersMan = new TimersManager;
+
 	_modules.push_back(new ButtonManager);
+	_modules.push_back(_timersMan);
 }
 
 Composer4Engine::~Composer4Engine() {
@@ -91,6 +95,12 @@ Common::Error Composer4Engine::run() {
 		}
 	}
 
+	while (!_eventMan->shouldQuit()) {
+		Common::Event ev;
+		while (_eventMan->pollEvent(ev)) {}
+
+		_timersMan->update(_system->getMillis());
+	}
 	return Common::kNoError;
 }
 
