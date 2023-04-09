@@ -245,11 +245,13 @@ enum class ResourceType : uint32 {
 union Variable {
 	Variable() : Variable(nullptr) {}
 	Variable(byte v) : Variable(nullptr) { u8 = v; }
-	Variable(int8 v) : Variable(nullptr) { u8 = v; }
+	Variable(int8 v) : Variable(nullptr) { i8 = v; }
 	Variable(int16 v) : Variable(nullptr) { i16 = v; }
 	Variable(uint16 v) : Variable(nullptr) { u16 = v; }
-	Variable(int32 v) : Variable(nullptr) { i32 = v; }
-	Variable(uint32 v) : Variable(nullptr) { u32 = v; }
+	Variable(int v) : Variable(nullptr) { i32 = v; }
+	Variable(long v) : Variable(nullptr) { i32 = v; }
+	Variable(unsigned int v) : Variable(nullptr) { u32 = v; }
+	Variable(unsigned long v) : Variable(nullptr) { u32 = v; }
 	Variable(float v) : Variable(nullptr) { f32 = v; }
 	Variable(void *v) : pointer(v) {}
 
