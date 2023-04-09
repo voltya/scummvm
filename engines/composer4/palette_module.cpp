@@ -47,7 +47,7 @@ int PaletteModule::setPalette(uint16 id, byte brightness) {
 	if (id) {
 		Common::ScopedPtr<Common::SeekableReadStream> stream{g_engine->openResource(id, ResourceType::kPalette)};
 		if (stream) {
-			uint16 count = MIN<uint16_t>(PALETTE_COUNT, stream->readUint16LE());
+			uint16 count = MIN<uint16>(PALETTE_COUNT, stream->readUint16LE());
 
 			byte palette[PALETTE_SIZE];
 			stream->read(palette, count * 3);
